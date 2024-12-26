@@ -1,0 +1,50 @@
+# .github/workflows/main.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          
+      - name: Install Dependencies
+        run: yarn install
+        
+      - name: Run Tests
+        run: yarn test
+        
+      - name: Run E2E Tests
+        uses: react-native-community/e2e-action@v1
+        
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Android
+        run: yarn android:build
+        
+      - name: Build iOS
+        run: yarn ios:build
+        
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to App Store
+        if: github.ref == 'refs/heads/main'
+        run: yarn deploy:ios
+        
+      - name: Deploy to Play Store
+        if: github.ref == 'refs/heads/main'
+        run: yarn deploy:android

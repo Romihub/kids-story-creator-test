@@ -1,0 +1,33 @@
+// deployment/config/deployment.yml
+stages:
+  - prepare
+  - build
+  - test
+  - deploy
+  - monitor
+
+prepare:
+  script:
+    - yarn install
+    - pod install
+
+build:
+  script:
+    - yarn build:ios
+    - yarn build:android
+
+test:
+  script:
+    - yarn test:e2e
+    - yarn test:security
+    - yarn test:performance
+
+deploy:
+  script:
+    - fastlane deploy
+    - firebase deploy
+
+monitor:
+  script:
+    - yarn monitor:setup
+    - yarn alerts:configure

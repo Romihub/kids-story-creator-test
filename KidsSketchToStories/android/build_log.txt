@@ -1,0 +1,12 @@
+Initialized native services in: C:\Users\olaiy\.gradle\native
+Initialized jansi services in: C:\Users\olaiy\.gradle\native
+Received JVM installation metadata from 'C:\Program Files\Java\jdk-17': {JAVA_HOME=C:\Program Files\Java\jdk-17, JAVA_VERSION=17.0.13, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=17.0.13+10-LTS-268, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=17.0.13+10-LTS-268, VM_VENDOR=Oracle Corporation, OS_ARCH=amd64}
+The client will now receive all logging from the daemon (pid: 23632). The daemon log file: C:\Users\olaiy\.gradle\daemon\8.3\daemon-23632.out.log
+Starting 4th build in daemon [uptime: 1 hrs 45 mins 18.516 secs, performance: 98%, GC rate: 0.00/s, heap usage: 1% of 2.6 GiB, non-heap usage: 15% of 1 GiB]
+Using 8 worker leases.
+Configuration on demand is an incubating feature.
+Now considering [C:\kids-story-creator-test\KidsSketchToStories\android, C:\kids-story-creator-test\KidsSketchToStories\node_modules\@react-native\gradle-plugin] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Watched directory hierarchies: [C:\kids-story-creator-test\KidsSketchToStories\android]

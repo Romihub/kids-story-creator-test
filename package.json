@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@react-native-community/cli": "latest"
+  },
+  "dependencies": {
+    "react-native-audio-recorder-player": "^3.6.12"
+  }
+}
