@@ -4,9 +4,10 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProps } from '../types/navigation';
 
 export const HomeScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProps>();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -17,7 +18,7 @@ export const HomeScreen = () => {
       <View style={styles.buttonsContainer}>
         <TouchableOpacity 
           style={styles.button}
-          onPress={() => navigation.navigate('Drawing')}
+          onPress={() => navigation.navigate('Drawing', { id: 'new' })}
         >
           <Icon name="brush" size={32} color="#007AFF" />
           <Text style={styles.buttonText}>New Drawing</Text>

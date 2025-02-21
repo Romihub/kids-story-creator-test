@@ -72,7 +72,7 @@ function MainTabs() {
         component={GalleryScreen}
         options={{
           tabBarIcon: ({ color }) => (
-            <Icon name="photo-library" size={24} color={color} />
+            <Icon name="image-multiple" size={24} color={color} />
           ),
         }}
       />
@@ -81,7 +81,7 @@ function MainTabs() {
         component={SettingsScreen}
         options={{
           tabBarIcon: ({ color }) => (
-            <Icon name="settings" size={24} color={color} />
+            <Icon name="cog" size={24} color={color} />
           ),
         }}
       />
@@ -164,11 +164,13 @@ export function AppNavigator() {
 }
 
 // Create a wrapped component for GalleryScreen with ErrorBoundary
-const GalleryScreenWithErrorBoundary: React.FC<NativeStackScreenProps<RootStackParamList, 'Gallery'>> = (props) => (
-  <ErrorBoundary>
-    <GalleryScreen {...props} />
-  </ErrorBoundary>
-);
+function GalleryScreenWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <GalleryScreen />
+    </ErrorBoundary>
+  );
+}
 
 // Export types for use in screens
 export type RootStackScreenProps<T extends keyof RootStackParamList> = 

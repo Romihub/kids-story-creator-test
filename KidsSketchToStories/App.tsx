@@ -1,9 +1,12 @@
 // App.tsx
 import React, { useEffect } from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native';
+import { Provider } from 'react-redux';
+import { store } from './src/store/store';
 import { firebase } from './src/config/firebase';
 import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider } from './src/contexts/AuthContext';
+import { AppNavigator } from './src/navigation/AppNavigator';
 
 const App = () => {
   useEffect(() => {
@@ -13,15 +16,13 @@ const App = () => {
   }, []);
 
   return (
-    <AuthProvider>
+    <Provider store={store}>
+      <AuthProvider>
       <NavigationContainer>
-        <SafeAreaView style={{ flex: 1 }}>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Hello Kids Story Creator!</Text>
-          </View>
-        </SafeAreaView>
+        <AppNavigator />
       </NavigationContainer>
-    </AuthProvider>
+      </AuthProvider>
+    </Provider>
   );
 };
 

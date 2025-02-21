@@ -25,7 +25,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "types": [
-      "socket.io-client"
+      "socket.io-client",
+      "react-native-reanimated"
     ]
   },
   "exclude": [

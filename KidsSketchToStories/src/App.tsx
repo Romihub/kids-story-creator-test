@@ -10,7 +10,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 // Store and Navigation
-import { store } from './store';
+import { store } from './store/index';
 import { AppNavigator } from './navigation/AppNavigator';
 import { RootStackParamList } from './types/navigation';
 
