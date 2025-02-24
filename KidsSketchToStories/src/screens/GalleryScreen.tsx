@@ -18,18 +18,25 @@ import {
   selectGalleryLoading,
   selectGalleryError,
 } from '../store/slices/gallerySlice';
-import type { NavigationProps } from '../types/navigation';
+import { useAuth } from '../hooks/useAuth';
+import type { NavigationProps, GalleryTabParamList } from '../types/navigation';
+import type { ParamListBase } from '@react-navigation/native';
+import type { MaterialTopTabNavigationProps } from '../types/navigation';
 import Svg, { Path } from 'react-native-svg';
 import { SavedDrawing, DrawingPath } from '../types/drawing';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { colors, typography, spacing, borderRadius } from '../themes/theme';
+import { Card } from '../components/shared/Card';
+import { Button } from '../components/shared/Button';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const Tab = createMaterialTopTabNavigator();
+const Tab = createMaterialTopTabNavigator<GalleryTabParamList>();
 
 const DrawingThumbnail: React.FC<{ drawing: SavedDrawing }> = ({ drawing }) => {
   const navigation = useNavigation<NavigationProps>();
   const dispatch = useAppDispatch();
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = async () => {
     try {
       await dispatch(deleteDrawing(drawing.id)).unwrap();
       dispatch(fetchGallery());
@@ -39,17 +46,16 @@ const DrawingThumbnail: React.FC<{ drawing: SavedDrawing }> = ({ drawing }) => {
         error instanceof Error ? error.message : 'Failed to delete drawing'
       );
     }
-  }, [dispatch, drawing.id]);
+  };
 
-  const handlePress = useCallback(() => {
-    // Navigate to Drawing screen in view mode
+  const handlePress = () => {
     navigation.navigate('Drawing', { 
       id: drawing.id,
       mode: 'view'
     });
-  }, [navigation, drawing.id]);
+  };
 
-  const handleLongPress = useCallback(() => {
+  const handleLongPress = () => {
     Alert.alert(
       'Delete Drawing',
       'Are you sure you want to delete this drawing?',
@@ -57,7 +63,7 @@ const DrawingThumbnail: React.FC<{ drawing: SavedDrawing }> = ({ drawing }) => {
         { 
           text: 'Cancel', 
           style: 'cancel',
-          onPress: () => {} // Explicitly handle cancel
+          onPress: () => {}
         },
         {
           text: 'Delete',
@@ -69,41 +75,69 @@ const DrawingThumbnail: React.FC<{ drawing: SavedDrawing }> = ({ drawing }) => {
           }
         }
       ],
-      { 
-        cancelable: true,
-        onDismiss: () => {}
-      }
+      { cancelable: true }
     );
-  }, [handleDelete]);
+  };
 
-  return (
-    <TouchableOpacity
-      style={styles.thumbnailContainer}
-      onPress={handlePress}
-      onLongPress={handleLongPress}
-      delayLongPress={500}
-    >
-      <View style={styles.thumbnail}>
+  const renderPaths = () => {
+    return drawing.paths.map((path: DrawingPath, index: number) => {
+      const { data, color, strokeWidth } = path;
+      return React.createElement(Path, {
+        d: data,
+        stroke: color,
+        strokeWidth: strokeWidth,
+        fill: "none",
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        key: `${index}-${path.timestamp}`
+      });
+    });
+  };
+
+  const cardProps = {
+    variant: 'secondary' as const,
+    style: styles.thumbnailContainer,
+    children: (
+      <TouchableOpacity
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+        delayLongPress={500}
+        style={styles.thumbnail}
+      >
         <Svg width="100%" height="100%" viewBox="0 0 300 300">
-          {drawing.paths.map((path: DrawingPath, index: number) => (
-            <Path
-              key={`${index}-${path.timestamp}`}
-              d={path.data}
-              stroke={path.color}
-              strokeWidth={path.strokeWidth}
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          ))}
+          {renderPaths()}
         </Svg>
-      </View>
-      <Text style={styles.timestamp}>
-        {new Date(drawing.timestamp).toLocaleDateString()}
-      </Text>
-    </TouchableOpacity>
-  );
+        <Text style={styles.timestamp}>
+          {new Date(drawing.timestamp).toLocaleDateString()}
+        </Text>
+      </TouchableOpacity>
+    )
+  };
+
+  return <Card {...cardProps} />;
 };
+
+const EmptyState: React.FC<{
+  icon: string;
+  title: string;
+  message: string;
+  action?: () => void;
+  actionLabel?: string;
+}> = ({ icon, title, message, action, actionLabel }) => (
+  <View style={styles.emptyStateContainer}>
+    <MaterialCommunityIcons name={icon} size={64} color={colors.text.disabled} style={styles.emptyStateIcon} />
+    <Text style={styles.emptyStateTitle}>{title}</Text>
+    <Text style={styles.emptyStateMessage}>{message}</Text>
+    {action && actionLabel && (
+      <Button
+        title={actionLabel}
+        onPress={action}
+        variant="primary"
+        style={styles.emptyStateButton}
+      />
+    )}
+  </View>
+);
 
 function DrawingsTab() {
   const dispatch = useAppDispatch();
@@ -111,48 +145,63 @@ function DrawingsTab() {
   const loading = useAppSelector(selectGalleryLoading);
   const error = useAppSelector(selectGalleryError);
   const [refreshing, setRefreshing] = useState(false);
-
-  const loadGallery = useCallback(() => {
-    dispatch(fetchGallery());
-  }, [dispatch]);
+  const navigation = useNavigation<NavigationProps>();
+  const { isAuthenticated } = useAuth();
 
   const handleRefresh = useCallback(async () => {
+    if (!isAuthenticated) return;
     setRefreshing(true);
     await dispatch(fetchGallery());
     setRefreshing(false);
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
-    loadGallery();
-  }, [loadGallery]);
+    if (isAuthenticated) {
+      dispatch(fetchGallery());
+    }
+  }, [dispatch, isAuthenticated]);
 
-  if (loading) {
+  if (!isAuthenticated) {
+    return (
+      <EmptyState
+        icon="login"
+        title="Sign In Required"
+        message="Please sign in to view your drawings"
+        action={() => navigation.navigate('Auth', { screen: 'SignIn' })}
+        actionLabel="Sign In"
+      />
+    );
+  }
+
+  if (loading && !refreshing) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => dispatch(fetchGallery())}
-        >
-          <Text style={styles.retryText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
+      <EmptyState
+        icon="alert-circle-outline"
+        title="Oops!"
+        message={error}
+        action={() => dispatch(fetchGallery())}
+        actionLabel="Try Again"
+      />
     );
   }
 
   if (!drawings.length) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.emptyText}>No drawings yet</Text>
-      </View>
+      <EmptyState
+        icon="pencil"
+        title="No Drawings Yet"
+        message="Start creating your magical stories by drawing something!"
+        action={() => navigation.navigate('Drawing', { id: 'new' })}
+        actionLabel="Start Drawing"
+      />
     );
   }
 
@@ -168,8 +217,8 @@ function DrawingsTab() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#007AFF']} // Android
-            tintColor="#007AFF" // iOS
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       />
@@ -178,92 +227,140 @@ function DrawingsTab() {
 }
 
 function StoriesTab() {
+  const { isAuthenticated } = useAuth();
+  const navigation = useNavigation<NavigationProps>();
+
+  if (!isAuthenticated) {
+    return (
+      <EmptyState
+        icon="login"
+        title="Sign In Required"
+        message="Please sign in to view your stories"
+        action={() => navigation.navigate('Auth', { screen: 'SignIn' })}
+        actionLabel="Sign In"
+      />
+    );
+  }
+
   return (
-    <View style={styles.centerContainer}>
-      <Text style={styles.emptyText}>No stories generated yet</Text>
-    </View>
+    <EmptyState
+      icon="book-open-variant"
+      title="No Stories Yet"
+      message="Your generated stories will appear here"
+    />
   );
 }
 
-export const GalleryScreen = () => {
+const tabScreenOptions = {
+  tabBarActiveTintColor: colors.primary,
+  tabBarInactiveTintColor: colors.text.disabled,
+  tabBarIndicatorStyle: { 
+    backgroundColor: colors.primary,
+    height: 3,
+    borderRadius: borderRadius.sm,
+  },
+  tabBarStyle: {
+    backgroundColor: colors.background,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  tabBarLabelStyle: {
+    ...typography.button,
+    textTransform: 'none' as const,
+  },
+};
+
+const screens = [
+  {
+    name: 'Drawings' as const,
+    component: DrawingsTab,
+    options: { title: 'Drawings' },
+  },
+  {
+    name: 'Stories' as const,
+    component: StoriesTab,
+    options: { title: 'Stories' },
+  },
+];
+
+type Props = MaterialTopTabNavigationProps;
+
+export function GalleryScreen({}: Props) {
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#999999',
-        tabBarIndicatorStyle: { backgroundColor: '#007AFF' },
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          elevation: 0,
-          shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: '#E0E0E0',
-        },
-      }}
+    <Tab.Navigator 
+      screenOptions={tabScreenOptions} 
+      initialRouteName="Drawings" 
     >
-      <Tab.Screen 
-        name="Drawings" 
+      <Tab.Screen
+        name="Drawings"
         component={DrawingsTab}
         options={{ title: 'Drawings' }}
       />
-      <Tab.Screen 
-        name="Stories" 
+      <Tab.Screen
+        name="Stories"
         component={StoriesTab}
         options={{ title: 'Stories' }}
       />
     </Tab.Navigator>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   gridContainer: {
-    padding: 8,
+    padding: spacing.md,
   },
   thumbnailContainer: {
     flex: 1,
-    margin: 8,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#F5F5F5',
+    margin: spacing.xs,
   },
   thumbnail: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
   },
   timestamp: {
-    padding: 8,
-    fontSize: 12,
-    color: '#666666',
+    ...typography.body2,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+    backgroundColor: colors.background,
+  },
+  emptyStateIcon: {
+    marginBottom: spacing.md,
+  },
+  emptyStateTitle: {
+    ...typography.h2,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
-  errorText: {
-    color: '#FF3B30',
-    marginBottom: 16,
+  emptyStateMessage: {
+    ...typography.body1,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
   },
-  retryButton: {
-    padding: 12,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-  },
-  retryText: {
-    color: '#FFFFFF',
-    fontWeight: '500',
-  },
-  emptyText: {
-    color: '#666666',
-    fontSize: 16,
+  emptyStateButton: {
+    minWidth: 200,
   },
 });
-
-export default GalleryScreen;

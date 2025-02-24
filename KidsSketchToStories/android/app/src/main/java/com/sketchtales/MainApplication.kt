@@ -1,4 +1,4 @@
-package com.kidssketchtostories
+package com.sketchtales
 
 import android.app.Application
 import android.util.Log
@@ -14,6 +14,7 @@ import com.facebook.soloader.SoLoader
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
 import com.swmansion.reanimated.ReanimatedPackage
+import com.google.firebase.FirebaseApp
 
 class MainApplication : Application(), ReactApplication {
 
@@ -21,15 +22,23 @@ class MainApplication : Application(), ReactApplication {
     super.onCreate()
     Log.d("MainApplication", "Application onCreate started")
 
-    // Initialize Facebook SDK first
+    // Initialize Firebase first
     try {
-      FacebookSdk.apply {
-        setApplicationId(getString(R.string.facebook_app_id))
-        setClientToken(getString(R.string.facebook_client_token))
-        sdkInitialize(applicationContext)
-        setAutoInitEnabled(true)
-        fullyInitialize()
-      }
+      FirebaseApp.initializeApp(this)
+      Log.d("MainApplication", "Firebase initialized successfully")
+    } catch (e: Exception) {
+      Log.e("MainApplication", "Error initializing Firebase: ${e.message}", e)
+    }
+
+    // Initialize Facebook SDK
+    try {
+      // Initialize Facebook SDK with proper method calls
+      FacebookSdk.setApplicationId(getString(R.string.facebook_app_id))
+      FacebookSdk.setClientToken(getString(R.string.facebook_client_token))
+      FacebookSdk.sdkInitialize(applicationContext)
+      FacebookSdk.setAutoInitEnabled(true)
+      FacebookSdk.fullyInitialize()
+      
       AppEventsLogger.activateApp(this)
       Log.d("MainApplication", "Facebook SDK initialized successfully")
     } catch (e: Exception) {

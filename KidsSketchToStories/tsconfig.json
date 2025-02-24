@@ -2,14 +2,14 @@
   "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
     "target": "es5",
-    "module": "Node16",
+    "module": "commonjs",
     "lib": ["es2017", "dom"],
     "allowJs": true,
     "jsx": "react-native",
     "noEmit": true,
     "isolatedModules": true,
     "strict": true,
-    "moduleResolution": "node16",
+    "moduleResolution": "node",
     "baseUrl": "./src",
     "paths": {
       "*": ["src/*", "node_modules/*"],

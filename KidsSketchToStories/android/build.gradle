@@ -2,16 +2,14 @@
 
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0" //"31.0.0" used 34 
-        minSdkVersion = 23  //21
-        compileSdkVersion = 34  //31 used 34
-        targetSdkVersion = 34   //31 used 34
+        buildToolsVersion = "34.0.0"
+        minSdkVersion = 23
+        compileSdkVersion = 34
+        targetSdkVersion = 34
 
         //Manually Added
-        kotlinVersion = "1.9.22"
+        kotlinVersion = "1.9.0" // Changed to match Firebase requirements
         ndkVersion = "25.1.8937393"
-        //cmakeVersion = "3.22.1"
-
 
         androidXVersion = "1.0.0"
         androidXAnnotation = "1.1.0"
@@ -34,44 +32,28 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.1.2") // Specify version
-        //classpath("com.android.tools.build:gradle")
+        classpath("com.android.tools.build:gradle:8.1.2")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath('com.google.gms:google-services:4.3.15')
+        classpath('com.google.gms:google-services:4.4.0') // Updated version
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.9")
-        //classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-        
-        //classpath("de.undercouch:gradle-download-task:5.0.1")
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
-//Manually added - upgrade
 apply plugin: "com.facebook.react.rootproject"
 
 allprojects {
     repositories {
         maven {
-            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")
         }
         maven {
-            // Android JSC is installed from npm
             url("$rootDir/../node_modules/jsc-android/dist")
         }
         maven {
-            // Add this for react-native-reanimated
             url("$rootDir/../node_modules/react-native-reanimated/android/maven")
         }
-        ///maven {
-            // react-native-camera
-        ///    url "$rootDir/../node_modules/react-native-camera/android/maven"
-        ///}
         mavenCentral {
-            // We don't want to fetch react-native from Maven Central as there are
-            // older versions over there.
             content {
                 excludeGroup "com.facebook.react"
             }

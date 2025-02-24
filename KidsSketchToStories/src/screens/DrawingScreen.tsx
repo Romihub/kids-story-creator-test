@@ -91,17 +91,6 @@ export const DrawingScreen = () => {
     }
   }, [drawingId, paths, currentColor, strokeWidth, currentTool, saveDrawing, navigation]);
 
-  // Debug props
-  useEffect(() => {
-    console.log('Drawing Header Props:', {
-      hasUndo,
-      hasRedo,
-      handleSave: !!handleSave,
-      clear: !!clear,
-      togglePanel: !!togglePanel
-    });
-  }, [hasUndo, hasRedo, handleSave, clear, togglePanel]);
-
   // Load existing drawing if editing
   useEffect(() => {
     const loadDrawing = async () => {

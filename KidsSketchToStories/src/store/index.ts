@@ -4,6 +4,7 @@ import drawingReducer from './slices/drawingSlice';
 import storyReducer from './slices/storySlice';
 import userReducer from './slices/userSlice';
 import galleryReducer from './slices/gallerySlice';
+import authReducer from './slices/authSlice';
 
 console.log('Initializing Redux store');
 export const store = configureStore({
@@ -12,6 +13,7 @@ export const store = configureStore({
     story: storyReducer,
     user: userReducer,
     gallery: galleryReducer,
+    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -22,3 +24,7 @@ export const store = configureStore({
 // Export types and hooks
 export * from './types';
 export * from './hooks';
+
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
