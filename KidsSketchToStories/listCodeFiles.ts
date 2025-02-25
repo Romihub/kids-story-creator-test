@@ -1,5 +1,5 @@
-const { readdirSync, statSync } = require("fs");
-const { join, dirname } = require("path");
+import { readdirSync, statSync } from "fs";
+import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 // Get directory name for ES Modules

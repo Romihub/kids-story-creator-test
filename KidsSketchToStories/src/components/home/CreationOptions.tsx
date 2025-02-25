@@ -1,27 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
 import { colors, typography, spacing, borderRadius, shadows } from '../../themes/theme';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProps } from '../../types/navigation';
+import * as ImagePicker from 'react-native-image-picker';
+import type { PhotoQuality, ImageLibraryOptions } from 'react-native-image-picker';
 
-const GRID_SPACING = spacing.md;
-const GRID_COLUMNS = 2;
-const CARD_WIDTH = (Dimensions.get('window').width - (GRID_SPACING * (GRID_COLUMNS + 1))) / GRID_COLUMNS;
-
-const AnimatedOption = ({ 
-  icon, 
-  title, 
-  description, 
-  color, 
-  onPress 
-}: { 
-  icon: string; 
-  title: string; 
-  description: string; 
+interface CreationOptionProps {
+  icon: string;
+  title: string;
+  description: string;
   color: string;
   onPress: () => void;
-}) => {
+}
+
+const CreationOption = React.memo<CreationOptionProps>(({ icon, title, description, color, onPress }) => {
   const [animation] = React.useState(new Animated.Value(1));
 
   const handlePressIn = () => {
@@ -51,25 +45,53 @@ const AnimatedOption = ({
           { transform: [{ scale: animation }] }
         ]}
       >
-        <View style={[styles.iconContainer, { backgroundColor: color }]}>
-          <MaterialCommunityIcons name={icon} size={32} color={colors.background} />
+        <View style={[styles.iconContainer, { backgroundColor: color + '10' }]}>
+          <MaterialCommunityIcons name={icon} size={32} color={color} />
         </View>
-        <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionDescription}>{description}</Text>
+        <View style={styles.textContainer}>
+          <Text style={styles.optionTitle}>{title}</Text>
+          <Text style={styles.optionDescription}>{description}</Text>
+        </View>
+        <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text.secondary} />
       </Animated.View>
     </TouchableOpacity>
   );
-};
+});
+
+CreationOption.displayName = 'CreationOption';
 
 export const CreationOptions = () => {
   const navigation = useNavigation<NavigationProps>();
+
+  const handleImagePick = async () => {
+    const options = {
+      mediaType: 'photo',
+      maxWidth: 2000,
+      maxHeight: 2000,
+      quality: (0.8 as unknown) as PhotoQuality,
+    } as ImageLibraryOptions;
+
+    try {
+      const response = await ImagePicker.launchImageLibrary(options);
+
+      if (response.assets && response.assets[0]?.uri) {
+        navigation.navigate('Drawing', {
+          id: 'new',
+          imageUri: response.assets[0].uri,
+          mode: 'edit'
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Get Started by</Text>
       
-      <View style={styles.optionsGrid}>
-        <AnimatedOption
+      <View style={styles.optionsContainer}>
+        <CreationOption
           icon="pencil"
           title="Draw Something"
           description="Create a new drawing from scratch"
@@ -77,15 +99,15 @@ export const CreationOptions = () => {
           onPress={() => navigation.navigate('Drawing', { id: 'new' })}
         />
         
-        <AnimatedOption
+        <CreationOption
           icon="image-plus"
           title="Upload Image"
           description="Upload a drawing from your device"
           color={colors.secondary}
-          onPress={() => navigation.navigate('Drawing', { id: 'new', mode: 'edit' })}
+          onPress={handleImagePick}
         />
         
-        <AnimatedOption
+        <CreationOption
           icon="camera"
           title="Take Photo"
           description="Take a photo of your drawing"
@@ -93,7 +115,7 @@ export const CreationOptions = () => {
           onPress={() => navigation.navigate('Camera')}
         />
         
-        <AnimatedOption
+        <CreationOption
           icon="image-multiple"
           title="Gallery"
           description="View your saved drawings"
@@ -114,25 +136,27 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
-  optionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: GRID_SPACING,
+  optionsContainer: {
+    gap: spacing.md,
   },
   optionCard: {
-    width: CARD_WIDTH,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    ...shadows.md,
+    padding: spacing.md,
+    ...shadows.sm,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.lg,
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginRight: spacing.md,
+  },
+  textContainer: {
+    flex: 1,
   },
   optionTitle: {
     ...typography.h3,

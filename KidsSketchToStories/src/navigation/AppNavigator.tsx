@@ -18,7 +18,9 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { GalleryScreen } from '../screens/GalleryScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { StoryCreationScreen } from '../screens/StoryCreationScreen';
+import { CustomizeStoryScreen } from '../screens/CustomizeStoryScreen';
 import { WordExplorerScreen } from '../screens/WordExplorerScreen';
+import { EditProfileScreen } from '../screens/EditProfileScreen';
 
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 
@@ -144,10 +146,11 @@ export function AppNavigator() {
             />
             <Stack.Screen 
               name="Story" 
-              component={StoryScreen}
+              component={StoryScreenWithErrorBoundary}
               options={{
                 headerShown: true,
-                title: 'Your Story'
+                title: 'Your Story',
+                headerBackTitle: 'Back',
               }}
             />
             <Stack.Screen 
@@ -167,9 +170,30 @@ export function AppNavigator() {
               }}
             />
             <Stack.Screen 
+              name="CustomizeStory" 
+              component={CustomizeStoryScreenWithErrorBoundary}
+              options={{
+                headerShown: true,
+                title: 'Customize Story',
+                headerBackTitle: 'Back',
+              }}
+            />
+            <Stack.Screen 
               name="StoryCreation" 
-              component={StoryCreationScreen}
-              options={{ title: 'Create Story' }}
+              component={StoryCreationScreenWithErrorBoundary}
+              options={{
+                headerShown: true,
+                title: 'Create Story',
+                headerBackTitle: 'Back',
+              }}
+            />
+            <Stack.Screen 
+              name="EditProfile" 
+              component={EditProfileScreen}
+              options={{
+                headerShown: true,
+                title: 'Edit Profile'
+              }}
             />
             {user?.isAdmin && (
               <Stack.Screen 
@@ -187,10 +211,34 @@ export function AppNavigator() {
   return <Stack.Navigator {...stackNavigatorProps} />;
 }
 
-// Create a wrapped component for GalleryScreen with ErrorBoundary
+// Create wrapped components with ErrorBoundary
 const GalleryScreenWithErrorBoundary = () => {
   const errorBoundaryProps = {
     children: <GalleryScreen />
+  } as const;
+
+  return <ErrorBoundary {...errorBoundaryProps} />;
+};
+
+const StoryScreenWithErrorBoundary = () => {
+  const errorBoundaryProps = {
+    children: <StoryScreen />
+  } as const;
+
+  return <ErrorBoundary {...errorBoundaryProps} />;
+};
+
+const StoryCreationScreenWithErrorBoundary = () => {
+  const errorBoundaryProps = {
+    children: <StoryCreationScreen />
+  } as const;
+
+  return <ErrorBoundary {...errorBoundaryProps} />;
+};
+
+const CustomizeStoryScreenWithErrorBoundary = () => {
+  const errorBoundaryProps = {
+    children: <CustomizeStoryScreen />
   } as const;
 
   return <ErrorBoundary {...errorBoundaryProps} />;

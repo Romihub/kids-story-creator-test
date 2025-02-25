@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import {
   View,
   FlatList,
@@ -19,12 +19,10 @@ import {
   selectGalleryError,
 } from '../store/slices/gallerySlice';
 import { useAuth } from '../hooks/useAuth';
-import type { NavigationProps, GalleryTabParamList } from '../types/navigation';
-import type { ParamListBase } from '@react-navigation/native';
-import type { MaterialTopTabNavigationProps } from '../types/navigation';
+import type { NavigationProps, GalleryTabParamList, MaterialTopTabNavigatorProps } from '../types/navigation';
 import Svg, { Path } from 'react-native-svg';
 import { SavedDrawing, DrawingPath } from '../types/drawing';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createMaterialTopTabNavigator, MaterialTopTabNavigationOptions } from '@react-navigation/material-top-tabs';
 import { colors, typography, spacing, borderRadius } from '../themes/theme';
 import { Card } from '../components/shared/Card';
 import { Button } from '../components/shared/Button';
@@ -94,27 +92,27 @@ const DrawingThumbnail: React.FC<{ drawing: SavedDrawing }> = ({ drawing }) => {
     });
   };
 
-  const cardProps = {
-    variant: 'secondary' as const,
-    style: styles.thumbnailContainer,
-    children: (
-      <TouchableOpacity
-        onPress={handlePress}
-        onLongPress={handleLongPress}
-        delayLongPress={500}
-        style={styles.thumbnail}
-      >
-        <Svg width="100%" height="100%" viewBox="0 0 300 300">
-          {renderPaths()}
-        </Svg>
-        <Text style={styles.timestamp}>
-          {new Date(drawing.timestamp).toLocaleDateString()}
-        </Text>
-      </TouchableOpacity>
-    )
-  };
-
-  return <Card {...cardProps} />;
+  return (
+    <Card 
+      variant="secondary" 
+      style={styles.thumbnailContainer}
+      children={
+        <TouchableOpacity
+          onPress={handlePress}
+          onLongPress={handleLongPress}
+          delayLongPress={500}
+          style={styles.thumbnail}
+        >
+          <Svg width="100%" height="100%" viewBox="0 0 300 300">
+            {renderPaths()}
+          </Svg>
+          <Text style={styles.timestamp}>
+            {new Date(drawing.timestamp).toLocaleDateString()}
+          </Text>
+        </TouchableOpacity>
+      }
+    />
+  );
 };
 
 const EmptyState: React.FC<{
@@ -144,18 +142,18 @@ function DrawingsTab() {
   const drawings = useAppSelector(selectGalleryDrawings);
   const loading = useAppSelector(selectGalleryLoading);
   const error = useAppSelector(selectGalleryError);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
   const navigation = useNavigation<NavigationProps>();
   const { isAuthenticated } = useAuth();
 
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = React.useCallback(async () => {
     if (!isAuthenticated) return;
     setRefreshing(true);
     await dispatch(fetchGallery());
     setRefreshing(false);
   }, [dispatch, isAuthenticated]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchGallery());
     }
@@ -251,7 +249,7 @@ function StoriesTab() {
   );
 }
 
-const tabScreenOptions = {
+const tabScreenOptions: MaterialTopTabNavigationOptions = {
   tabBarActiveTintColor: colors.primary,
   tabBarInactiveTintColor: colors.text.disabled,
   tabBarIndicatorStyle: { 
@@ -272,38 +270,30 @@ const tabScreenOptions = {
   },
 };
 
-const screens = [
-  {
-    name: 'Drawings' as const,
-    component: DrawingsTab,
-    options: { title: 'Drawings' },
-  },
-  {
-    name: 'Stories' as const,
-    component: StoriesTab,
-    options: { title: 'Stories' },
-  },
-];
+export function GalleryScreen() {
+  const navigatorProps = {
+    screenOptions: tabScreenOptions,
+    initialRouteName: "Drawings" as const,
+    children: (
+      <>
+        <Tab.Screen
+          name="Drawings"
+          component={DrawingsTab}
+          options={{ title: 'Drawings' }}
+        />
+        <Tab.Screen
+          name="Stories"
+          component={StoriesTab}
+          options={{ title: 'Stories' }}
+        />
+      </>
+    )
+  } as const;
 
-type Props = MaterialTopTabNavigationProps;
-
-export function GalleryScreen({}: Props) {
   return (
-    <Tab.Navigator 
-      screenOptions={tabScreenOptions} 
-      initialRouteName="Drawings" 
-    >
-      <Tab.Screen
-        name="Drawings"
-        component={DrawingsTab}
-        options={{ title: 'Drawings' }}
-      />
-      <Tab.Screen
-        name="Stories"
-        component={StoriesTab}
-        options={{ title: 'Stories' }}
-      />
-    </Tab.Navigator>
+    <View style={styles.container}>
+      <Tab.Navigator {...navigatorProps} />
+    </View>
   );
 }
 

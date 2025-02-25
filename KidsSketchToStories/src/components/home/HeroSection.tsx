@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { colors, typography, spacing, borderRadius, shadows } from '../../themes/theme';
-import { Button } from '../shared/Button';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProps } from '../../types/navigation';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useAuth } from '../../hooks/useAuth';
+import { Button } from '../shared/Button';
 
 export const HeroSection = () => {
   const navigation = useNavigation<NavigationProps>();
+  const { isAuthenticated } = useAuth();
   const [animation] = React.useState(new Animated.Value(0));
 
   React.useEffect(() => {
@@ -30,100 +32,104 @@ export const HeroSection = () => {
   return (
     <View style={styles.container}>
       <View style={styles.heroContent}>
+        <View style={styles.textContent}>
+          <Text style={styles.title}>Welcome to StoryDoodle!</Text>
+          <Text style={styles.subtitle}>
+            Turn your drawings into magical stories with AI
+          </Text>
+        </View>
+
         <View style={styles.illustrationContainer}>
-          {/* Drawing Canvas */}
-          <View style={styles.canvas}>
-            <MaterialCommunityIcons name="pencil-outline" size={32} color={colors.primary} />
-            <MaterialCommunityIcons name="brush-variant" size={32} color={colors.secondary} />
-            <MaterialCommunityIcons name="eraser" size={32} color={colors.text.secondary} />
+          {/* Kid Character */}
+          <View style={styles.characterContainer}>
+            <MaterialCommunityIcons 
+              name="emoticon-excited-outline" 
+              size={64} 
+              color={colors.primary} 
+              style={styles.character}
+            />
+            <MaterialCommunityIcons 
+              name="pencil" 
+              size={32} 
+              color={colors.secondary} 
+              style={styles.pencil}
+            />
           </View>
-          
-          {/* Magic Sparkles */}
+
+          {/* Drawing Elements */}
+          <View style={styles.drawingElements}>
+            <MaterialCommunityIcons 
+              name="palette" 
+              size={32} 
+              color={colors.accent} 
+              style={styles.palette}
+            />
+            <MaterialCommunityIcons 
+              name="brush" 
+              size={32} 
+              color={colors.secondary} 
+              style={styles.brush}
+            />
+          </View>
+
+          {/* Floating Elements */}
           <Animated.View
             style={[
-              styles.sparkles,
+              styles.floatingElements,
               {
                 transform: [{
-                  scale: animation.interpolate({
+                  translateY: animation.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0.8, 1.2],
+                    outputRange: [0, -15],
                   }),
                 }],
                 opacity: animation.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0.5, 1],
+                  outputRange: [0.6, 1],
                 }),
               },
             ]}
           >
-            <MaterialCommunityIcons name="star" size={24} color={colors.accent} />
-            <MaterialCommunityIcons name="star" size={24} color={colors.primary} />
-            <MaterialCommunityIcons name="star" size={24} color={colors.secondary} />
+            <MaterialCommunityIcons name="star" size={24} color={colors.accent} style={styles.star1} />
+            <MaterialCommunityIcons name="book-open-page-variant" size={32} color={colors.secondary} style={styles.book} />
+            <MaterialCommunityIcons name="star" size={20} color={colors.primary} style={styles.star2} />
           </Animated.View>
-
-          {/* Story Book */}
-          <View style={styles.book}>
-            <MaterialCommunityIcons name="book-open-variant" size={48} color={colors.primary} />
-            <View style={styles.bookLines}>
-              <View style={styles.bookLine} />
-              <View style={styles.bookLine} />
-              <View style={styles.bookLine} />
-            </View>
-          </View>
-        </View>
-
-        <Text style={styles.title}>Welcome to StoryDoodle!</Text>
-        <Text style={styles.subtitle}>
-          Turn your drawings into magical stories with AI
-        </Text>
-
-        <View style={styles.features}>
-          <View style={styles.featureItem}>
-            <MaterialCommunityIcons name="pencil-outline" size={32} color={colors.primary} />
-            <Text style={styles.featureText}>Draw</Text>
-          </View>
-          <MaterialCommunityIcons 
-            name="arrow-right" 
-            size={24} 
-            color={colors.text.secondary}
-            style={styles.arrow}
-          />
-          <View style={styles.featureItem}>
-            <MaterialCommunityIcons name="auto-fix" size={32} color={colors.primary} />
-            <Text style={styles.featureText}>Magic</Text>
-          </View>
-          <MaterialCommunityIcons 
-            name="arrow-right" 
-            size={24} 
-            color={colors.text.secondary}
-            style={styles.arrow}
-          />
-          <View style={styles.featureItem}>
-            <MaterialCommunityIcons name="book-open-variant" size={32} color={colors.primary} />
-            <Text style={styles.featureText}>Read</Text>
-          </View>
         </View>
 
         <View style={styles.buttons}>
-          <Button
-            title="Start Drawing"
-            variant="primary"
-            size="large"
-            icon="pencil"
-            onPress={() => navigation.navigate('Auth', { screen: 'SignUp', params: { plan: undefined } })}
-            style={styles.button}
-          />
-          <Button
-            title="Sign In"
-            variant="outline"
-            size="large"
-            icon="login"
-            onPress={() => navigation.navigate('Auth', { screen: 'SignIn' })}
-            style={styles.button}
-          />
+          {isAuthenticated ? (
+            <Button
+              title="Start Drawing"
+              variant="primary"
+              size="large"
+              icon="pencil"
+              onPress={() => navigation.navigate('Drawing', { id: 'new' })}
+              style={styles.button}
+            />
+          ) : (
+            <>
+              <Button
+                title="Start Drawing"
+                variant="primary"
+                size="large"
+                icon="pencil"
+                onPress={() => navigation.navigate('Auth', { screen: 'SignUp', params: { plan: undefined } })}
+                style={styles.button}
+              />
+              <Button
+                title="Sign In"
+                variant="outline"
+                size="large"
+                icon="login"
+                onPress={() => navigation.navigate('Auth', { screen: 'SignIn' })}
+                style={styles.button}
+              />
+            </>
+          )}
         </View>
       </View>
 
+      {/* Background Decorations */}
       <View style={styles.decorations}>
         <View style={[styles.decoration, styles.decoration1]} />
         <View style={[styles.decoration, styles.decoration2]} />
@@ -146,50 +152,9 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     alignItems: 'center',
   },
-  illustrationContainer: {
-    height: 250,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  textContent: {
     alignItems: 'center',
     marginBottom: spacing.xl,
-  },
-  canvas: {
-    width: 120,
-    height: 160,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    ...shadows.md,
-    padding: spacing.md,
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  sparkles: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    flexDirection: 'row',
-    gap: spacing.sm,
-    transform: [{ translateX: -36 }, { translateY: -12 }],
-  },
-  book: {
-    width: 120,
-    height: 160,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    ...shadows.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bookLines: {
-    marginTop: spacing.md,
-    width: '80%',
-  },
-  bookLine: {
-    height: 2,
-    backgroundColor: colors.text.disabled,
-    marginVertical: spacing.xs,
   },
   title: {
     ...typography.h1,
@@ -201,28 +166,64 @@ const styles = StyleSheet.create({
     ...typography.body1,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  illustrationContainer: {
+    height: 250,
+    width: '100%',
+    position: 'relative',
     marginBottom: spacing.xl,
   },
-  features: {
-    flexDirection: 'row',
+  characterContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: '50%',
+    transform: [{ translateX: -32 }],
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xl,
   },
-  featureItem: {
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    ...shadows.sm,
+  character: {
+    position: 'relative',
   },
-  featureText: {
-    ...typography.body2,
-    color: colors.text.primary,
-    marginTop: spacing.xs,
+  pencil: {
+    position: 'absolute',
+    top: -20,
+    right: -20,
+    transform: [{ rotate: '45deg' }],
   },
-  arrow: {
-    marginHorizontal: spacing.sm,
+  drawingElements: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  palette: {
+    position: 'absolute',
+    top: '30%',
+    left: '20%',
+  },
+  brush: {
+    position: 'absolute',
+    top: '40%',
+    right: '25%',
+    transform: [{ rotate: '-30deg' }],
+  },
+  floatingElements: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  star1: {
+    position: 'absolute',
+    top: '20%',
+    left: '30%',
+  },
+  book: {
+    position: 'absolute',
+    top: '50%',
+    right: '20%',
+  },
+  star2: {
+    position: 'absolute',
+    top: '70%',
+    left: '25%',
   },
   buttons: {
     width: '100%',

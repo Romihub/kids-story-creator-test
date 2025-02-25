@@ -9,22 +9,34 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProps } from '../types/navigation';
 
-// Define settings interface
+// Define settings interface with strict types
 interface UserSettings {
-  theme: string;
+  theme: 'light' | 'dark';
   language: string;
   notifications: boolean;
-  soundEnabled?: boolean;
-  vibrationEnabled?: boolean;
+  soundEnabled: boolean;
+  vibrationEnabled: boolean;
 }
+
+const defaultSettings: UserSettings = {
+  theme: 'light',
+  language: 'en',
+  notifications: false,
+  soundEnabled: true,
+  vibrationEnabled: true
+};
 
 export const SettingsScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProps>();
-  const settings = useAppSelector((state) => state.user.settings as UserSettings);
+  const settings = useAppSelector((state) => 
+    state.user.settings ? 
+    { ...defaultSettings, ...state.user.settings as Partial<UserSettings> } : 
+    defaultSettings
+  );
   const { user, signOut } = useAuth();
 
-  const handleSettingChange = (key: keyof UserSettings, value: any) => {
+  const handleSettingChange = <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
     dispatch(updateSettings({ [key]: value }));
   };
 
@@ -40,15 +52,13 @@ export const SettingsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         {user?.isAdmin && (
-          <List.Section>
-            <List.Subheader style={styles.subheader}>Admin</List.Subheader>
+          <List.Section title="Admin">
             <List.Item
               title="Admin Dashboard"
               description="Manage app and users"
               left={props => <List.Icon {...props} icon="shield-account" color={colors.primary} />}
               onPress={() => navigation.navigate('Admin', { screen: 'Dashboard' })}
             />
-            <Divider />
           </List.Section>
         )}
 

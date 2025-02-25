@@ -1,4 +1,3 @@
-// src/screens/DrawingScreen.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList, NavigationProps } from '../types/navigation';
@@ -9,13 +8,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DrawingCanvas } from '../components/drawing/DrawingCanvas';
 import { DrawingTools } from '../components/drawing/DrawingTools';
 import { DrawingHeader } from '../components/drawing/DrawingHeader';
+import { StoryProgressBar } from '../components/navigation/StoryProgressBar';
 import { useDrawing } from '../hooks/useDrawing';
+import { useStoryCreation } from '../hooks/useStoryCreation';
 import { DrawingTool, Point } from '../types/drawing';
 
 type DrawingScreenRouteProp = RouteProp<RootStackParamList, 'Drawing'>;
 
 export const DrawingScreen = () => {
   const route = useRoute<DrawingScreenRouteProp>();
+  const navigation = useNavigation<NavigationProps>();
+  const {
+    currentStep,
+    drawing: storyDrawing,
+    updateDrawingState,
+    updateDrawingPaths,
+    navigateToCustomize,
+    handleBackNavigation,
+    canNavigateToCustomize,
+  } = useStoryCreation();
 
   const {
     currentTool,
@@ -38,28 +49,29 @@ export const DrawingScreen = () => {
     togglePanel
   } = useDrawing();
 
-  const navigation = useNavigation<NavigationProps>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { id: drawingId, imageUri, mode = 'new' } = route.params || {};
   const isEditMode = mode === 'edit';
   const isViewMode = mode === 'view';
 
-  // Disable editing in view mode
+  // Only reset tools once when entering view mode
   useEffect(() => {
     if (isViewMode) {
-      // Reset tools to default state
       setTool('pencil');
       setColor('#000000');
       setSize(3);
     }
-  }, [isViewMode, setTool, setColor, setSize]);
+  }, []); // Empty dependency array since we only want this to run once on mount
+
+  // Update story creation state when paths change
+  useEffect(() => {
+    updateDrawingPaths(paths);
+  }, [paths, updateDrawingPaths]);
 
   const handleSave = useCallback(async () => {
     if (isViewMode) return;
-    console.log('handleSave called in DrawingScreen');
     if (!paths.length) {
-      console.log('No paths to save');
       Alert.alert('Error', 'No drawing to save');
       return;
     }
@@ -67,7 +79,6 @@ export const DrawingScreen = () => {
     setIsLoading(true);
     try {
       if (drawingId && drawingId !== 'new') {
-        console.log('Updating existing drawing:', drawingId);
         await drawingsApi.updateDrawing(drawingId, {
           paths,
           color: currentColor,
@@ -75,21 +86,41 @@ export const DrawingScreen = () => {
           tool: currentTool,
           timestamp: new Date().toISOString()
         });
-        Alert.alert('Success', 'Drawing updated successfully!', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+
+        updateDrawingState({
+          drawingId,
+          paths,
+          imageUri: null,
+          source: 'draw'
+        });
+
+        if (canNavigateToCustomize()) {
+          navigateToCustomize();
+        } else {
+          Alert.alert('Success', 'Drawing updated successfully!', [
+            { text: 'OK', onPress: () => navigation.goBack() }
+          ]);
+        }
       } else {
-        console.log('Saving new drawing');
-        await saveDrawing({ paths });
+        const savedDrawing = await saveDrawing({ paths });
+        updateDrawingState({
+          drawingId: savedDrawing.id,
+          paths,
+          imageUri: null,
+          source: 'draw'
+        });
+
+        if (canNavigateToCustomize()) {
+          navigateToCustomize();
+        }
       }
     } catch (error) {
-      console.error('Error saving drawing:', error);
       const message = error instanceof Error ? error.message : 'Failed to save drawing';
       Alert.alert('Error', message);
     } finally {
       setIsLoading(false);
     }
-  }, [drawingId, paths, currentColor, strokeWidth, currentTool, saveDrawing, navigation]);
+  }, [drawingId, paths, currentColor, strokeWidth, currentTool, saveDrawing, navigation, isViewMode, updateDrawingState, canNavigateToCustomize, navigateToCustomize]);
 
   // Load existing drawing if editing
   useEffect(() => {
@@ -123,7 +154,7 @@ export const DrawingScreen = () => {
         const message = err instanceof Error ? err.message : 'Failed to load drawing';
         setError(message);
         Alert.alert('Error', message, [
-          { text: 'Go Back', onPress: () => navigation.goBack() }
+          { text: 'Go Back', onPress: handleBackNavigation }
         ]);
       } finally {
         setIsLoading(false);
@@ -131,8 +162,7 @@ export const DrawingScreen = () => {
     };
 
     loadDrawing();
-  }, [drawingId, setTool, setColor, setSize, startPath, addPoint, endPath, navigation]);
-
+  }, [drawingId]); // Only reload when drawingId changes
 
   const handleStrokeStart = useCallback((point: Point) => {
     startPath({
@@ -164,10 +194,15 @@ export const DrawingScreen = () => {
     <View style={styles.container}>
       <GestureHandlerRootView style={styles.gestureRoot}>
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
+          <StoryProgressBar
+            currentStep="drawing"
+            onStepPress={handleBackNavigation}
+            canNavigateBack={false}
+          />
+          
           <DrawingHeader
             onShowTools={togglePanel}
             onSave={isViewMode ? () => {
-              // Switch to edit mode
               navigation.setParams({ mode: 'edit' });
             } : handleSave}
             onUndo={undo}

@@ -55,6 +55,14 @@ export const typography = {
   caption: {
     fontSize: 12,
     fontWeight: '500' as const
+  },
+  subtitle1: {
+    fontSize: 16,
+    fontWeight: '500' as const
+  },
+  subtitle2: {
+    fontSize: 14,
+    fontWeight: '500' as const
   }
 };
 

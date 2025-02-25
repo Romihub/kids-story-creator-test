@@ -1,4 +1,3 @@
-// src/components/drawing/DrawingHeader.tsx
 import React from 'react';
 import {
   View,
@@ -78,10 +77,7 @@ export const DrawingHeader: React.FC<DrawingHeaderProps> = ({
 
           <TouchableOpacity
             style={[styles.iconButton, styles.clearButton]}
-            onPress={() => {
-              console.log('Clear button pressed');
-              onClear?.();
-            }}
+            onPress={onClear}
           >
             <Icon name="delete-outline" size={28} color="#FF3B30" />
             <Text style={[styles.iconText, styles.clearText]}>Clear</Text>
@@ -93,15 +89,7 @@ export const DrawingHeader: React.FC<DrawingHeaderProps> = ({
         {!isViewMode ? (
           <TouchableOpacity
             style={[styles.button, styles.saveButton]}
-            onPress={() => {
-              console.log('Save button pressed');
-              if (onSave) {
-                console.log('Calling onSave function');
-                onSave();
-              } else {
-                console.log('onSave is undefined');
-              }
-            }}
+            onPress={onSave}
           >
             <Icon name="content-save" size={24} color="#FFFFFF" />
             <Text style={styles.saveButtonText}>Save</Text>
@@ -109,13 +97,7 @@ export const DrawingHeader: React.FC<DrawingHeaderProps> = ({
         ) : (
           <TouchableOpacity
             style={[styles.button, styles.editButton]}
-            onPress={() => {
-              console.log('Edit button pressed');
-              if (onSave) {
-                console.log('Calling onSave function');
-                onSave();
-              }
-            }}
+            onPress={onSave}
           >
             <Icon name="pencil" size={24} color="#FFFFFF" />
             <Text style={styles.saveButtonText}>Edit</Text>

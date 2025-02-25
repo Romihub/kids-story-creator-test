@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { useEffect } from 'react';
-import { Provider as ReduxProvider } from 'react-redux';
+import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -47,7 +47,7 @@ const AppContent = () => {
 const App = () => {
   return (
     <ErrorBoundary>
-      <ReduxProvider store={store}>
+      <Provider store={store}>
         <PaperProvider>
           <SafeAreaProvider>
             <GestureHandlerRootView style={styles.container}>
@@ -55,7 +55,7 @@ const App = () => {
             </GestureHandlerRootView>
           </SafeAreaProvider>
         </PaperProvider>
-      </ReduxProvider>
+      </Provider>
     </ErrorBoundary>
   );
 };

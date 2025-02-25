@@ -1,10 +1,10 @@
 import type { 
   NativeStackScreenProps, 
-  NativeStackNavigationOptions
+  NativeStackNavigationOptions 
 } from '@react-navigation/native-stack';
 import type { 
   BottomTabScreenProps, 
-  BottomTabNavigationOptions
+  BottomTabNavigationOptions 
 } from '@react-navigation/bottom-tabs';
 import type { 
   MaterialTopTabScreenProps, 
@@ -15,11 +15,25 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import React from 'react';
 
-// Utility type to make navigator props more flexible
-type NavigatorBaseProps = {
-  screenOptions?: any;
-  children?: React.ReactNode;
-  initialRouteName?: string;
+// Root Stack Types
+export type RootStackParamList = {
+  MainTabs: NavigatorScreenParams<TabParamList> | { screen: keyof TabParamList };
+  Drawing: { id: string; imageUri?: string; mode?: 'new' | 'edit' | 'view' };
+  Story: { id: string };
+  Camera: undefined;
+  Gallery: undefined;
+  CustomizeStory: {
+    imageUri?: string;
+    drawingId?: string;
+  };
+  StoryCreation: undefined;
+  Subscription: undefined;
+  Settings: undefined;
+  WordExplorer: undefined;
+  Auth: NavigatorScreenParams<AuthStackParamList>;
+  Admin: NavigatorScreenParams<AdminStackParamList>;
+  UserProfile: undefined;
+  EditProfile: undefined;
 };
 
 // Auth Stack Types
@@ -39,7 +53,16 @@ export type AdminStackParamList = {
 
 // Tab Navigator Types
 export type TabParamList = {
-  Home: undefined;
+  Home: {
+    storySettings?: {
+      coverImage: string | null;
+      ageGroup: string;
+      author: string;
+      gender: 'boy' | 'girl' | null;
+      storyLength: 'short' | 'medium' | 'long';
+      theme: string;
+    };
+  } | undefined;
   Gallery: undefined;
   WordExplorer: undefined;
   Settings: undefined;
@@ -49,23 +72,6 @@ export type TabParamList = {
 export type GalleryTabParamList = {
   Drawings: undefined;
   Stories: undefined;
-};
-
-// Root Stack Types
-export type RootStackParamList = {
-  MainTabs: NavigatorScreenParams<TabParamList>;
-  Drawing: { id: string; imageUri?: string; mode?: 'new' | 'edit' | 'view' };
-  Story: { id: string };
-  Camera: undefined;
-  Test: undefined;
-  Gallery: undefined;
-  StoryCreation: undefined;
-  Subscription: undefined;
-  Settings: undefined;
-  WordExplorer: undefined;
-  Auth: NavigatorScreenParams<AuthStackParamList>;
-  Admin: NavigatorScreenParams<AdminStackParamList>;
-  UserProfile: undefined;
 };
 
 // Screen Props Types
@@ -85,6 +91,8 @@ export type GalleryTabNavigationProp = NativeStackNavigationProp<GalleryTabParam
 
 // Route Props Types
 export type DrawingScreenRouteProp = RouteProp<RootStackParamList, 'Drawing'>;
+export type CustomizeStoryScreenRouteProp = RouteProp<RootStackParamList, 'CustomizeStory'>;
+export type StoryScreenRouteProp = RouteProp<RootStackParamList, 'Story'>;
 
 // Screen Component Types
 export type ScreenComponent<T extends keyof RootStackParamList> = React.FC<RootStackScreenProps<T>>;
@@ -103,26 +111,13 @@ export type MaterialTopTabOptions = MaterialTopTabNavigationOptions;
 // Navigator Props Types
 export type NavigatorProps = {
   screenOptions?: NativeStackNavigationOptions;
-  children?: React.ReactNode;
+  children: React.ReactNode;
+  initialRouteName?: string;
 };
-
-// Navigator Component Types
-export type NavigatorComponent<T> = React.FC<{
-  screenOptions?: NativeStackNavigationOptions;
-  children?: React.ReactNode;
-  initialRouteName?: keyof T;
-}>;
 
 // Material Top Tab Navigator Props
 export type MaterialTopTabNavigatorProps = {
   screenOptions?: MaterialTopTabNavigationOptions;
-  children?: React.ReactNode;
-  initialRouteName?: keyof GalleryTabParamList;
-};
-
-// Navigator Props with Children
-export type NavigatorWithChildrenProps<T> = {
-  screenOptions?: NativeStackNavigationOptions;
   children: React.ReactNode;
-  initialRouteName?: keyof T;
+  initialRouteName?: keyof GalleryTabParamList;
 };

@@ -5,6 +5,8 @@ import storyReducer from './slices/storySlice';
 import userReducer from './slices/userSlice';
 import galleryReducer from './slices/gallerySlice';
 import authReducer from './slices/authSlice';
+import subscriptionReducer from './slices/subscriptionSlice';
+import storyCreationReducer from './slices/storyCreationSlice';
 
 console.log('Initializing Redux store');
 export const store = configureStore({
@@ -14,6 +16,8 @@ export const store = configureStore({
     user: userReducer,
     gallery: galleryReducer,
     auth: authReducer,
+    subscription: subscriptionReducer,
+    storyCreation: storyCreationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

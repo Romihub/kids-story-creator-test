@@ -1,68 +1,65 @@
-// src/store/slices/subscriptionSlice.ts
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { SubscriptionTier, SubscriptionStatus } from '../../types';
-import { PaymentService } from '../../services/payment';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from '../types';
 
-interface SubscriptionState {
-  currentTier: SubscriptionTier;
-  status: SubscriptionStatus;
-  expiryDate: string | null;
-  features: {
-    remainingRegenerations: number;
-    storiesCreated: number;
-    storiesLimit: number;
-  };
-  loading: boolean;
-  error: string | null;
+export interface SubscriptionState {
+  type: 'free' | 'pro' | null;
+  expiresAt: string | null;
+  features: string[];
+  storiesGenerated: number; // Track number of stories generated
+  maxFreeStories: number; // Maximum stories allowed for free users
 }
 
-export const purchaseSubscription = createAsyncThunk(
-  'subscription/purchase',
-  async ({ tierId, paymentMethodId }: { tierId: string; paymentMethodId: string }) => {
-    const response = await PaymentService.createSubscription(tierId, paymentMethodId);
-    return response;
-  }
-);
+const initialState: SubscriptionState = {
+  type: null,
+  expiresAt: null,
+  features: [],
+  storiesGenerated: 0,
+  maxFreeStories: 3, // Free users can generate 3 short stories
+};
 
 const subscriptionSlice = createSlice({
   name: 'subscription',
-  initialState: {
-    currentTier: 'free',
-    status: 'active',
-    expiryDate: null,
-    features: {
-      remainingRegenerations: 1,
-      storiesCreated: 0,
-      storiesLimit: 3,
-    },
-    loading: false,
-    error: null,
-  } as SubscriptionState,
+  initialState,
   reducers: {
-    useRegeneration: (state) => {
-      if (state.features.remainingRegenerations > 0) {
-        state.features.remainingRegenerations--;
-      }
+    setSubscription: (state, action: PayloadAction<Omit<SubscriptionState, 'storiesGenerated' | 'maxFreeStories'>>) => {
+      state.type = action.payload.type;
+      state.expiresAt = action.payload.expiresAt;
+      state.features = action.payload.features;
     },
-    addStory: (state) => {
-      state.features.storiesCreated++;
+    incrementStoriesGenerated: (state) => {
+      state.storiesGenerated += 1;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(purchaseSubscription.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(purchaseSubscription.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentTier = action.payload.tier;
-        state.expiryDate = action.payload.expiryDate;
-        state.features = action.payload.features;
-      })
-      .addCase(purchaseSubscription.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Subscription failed';
-      });
+    clearSubscription: (state) => {
+      state.type = null;
+      state.expiresAt = null;
+      state.features = [];
+      state.storiesGenerated = 0;
+    },
+    resetStoriesCount: (state) => {
+      state.storiesGenerated = 0;
+    }
   },
 });
+
+export const { 
+  setSubscription, 
+  clearSubscription, 
+  incrementStoriesGenerated,
+  resetStoriesCount 
+} = subscriptionSlice.actions;
+
+// Selectors
+export const selectUserSubscription = (state: RootState) => state.subscription;
+export const selectIsProUser = (state: RootState) => state.subscription.type === 'pro';
+export const selectCanGenerateStory = (state: RootState) => {
+  const { type, storiesGenerated, maxFreeStories } = state.subscription;
+  if (type === 'pro') return true;
+  return storiesGenerated < maxFreeStories;
+};
+export const selectStoriesRemaining = (state: RootState) => {
+  const { type, storiesGenerated, maxFreeStories } = state.subscription;
+  if (type === 'pro') return Infinity;
+  return Math.max(0, maxFreeStories - storiesGenerated);
+};
+
+export default subscriptionSlice.reducer;
