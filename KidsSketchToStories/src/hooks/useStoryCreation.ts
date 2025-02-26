@@ -14,9 +14,8 @@ import {
   resetDrawing,
   resetSettings,
   DrawingState,
-  StorySettings,
 } from '../store/slices/storyCreationSlice';
-import type { RootStackParamList } from '../types/navigation';
+import type { RootStackParamList, StorySettings } from '../types/navigation';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -47,8 +46,11 @@ export const useStoryCreation = () => {
 
   const navigateToGenerate = useCallback(() => {
     dispatch(setCurrentStep('generate'));
-    navigation.navigate('StoryCreation');
-  }, [dispatch, navigation]);
+    navigation.navigate('StoryCreation', {
+      imageUri: storyCreation.drawing.imageUri || '',
+      storySettings: storyCreation.settings
+    });
+  }, [dispatch, navigation, storyCreation.drawing.imageUri, storyCreation.settings]);
 
   const navigateToHome = useCallback(() => {
     navigation.navigate('MainTabs', { screen: 'Home' });

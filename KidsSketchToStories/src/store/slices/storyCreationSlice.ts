@@ -1,13 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-export interface StorySettings {
-  ageGroup: string;
-  theme: string;
-  storyLength: 'short' | 'medium' | 'long';
-  gender: 'boy' | 'girl' | null;
-  author: string;
-  coverImage: string | null;
-}
+import type { StorySettings } from '../../types/navigation';
 
 export interface DrawingState {
   imageUri: string | null;
@@ -37,9 +29,11 @@ const initialState: StoryCreationState = {
     ageGroup: '5-8',
     theme: 'adventure',
     storyLength: 'medium',
+    author: '', // Changed from authorName to author
     gender: null,
-    author: '',
-    coverImage: null,
+    coverImage: undefined,
+    includeVoiceNarration: false,
+    additionalIdeas: '',
   },
   storyId: null,
   isGenerating: false,

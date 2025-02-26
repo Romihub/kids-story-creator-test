@@ -1,3 +1,4 @@
+//src/navigation/AppNavigator.tsx
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -21,6 +22,7 @@ import { StoryCreationScreen } from '../screens/StoryCreationScreen';
 import { CustomizeStoryScreen } from '../screens/CustomizeStoryScreen';
 import { WordExplorerScreen } from '../screens/WordExplorerScreen';
 import { EditProfileScreen } from '../screens/EditProfileScreen';
+import { SubscriptionScreen } from '../screens/SubscriptionScreen';
 
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 
@@ -32,13 +34,13 @@ function MainTabs() {
   const tabNavigatorProps = {
     screenOptions: {
       tabBarActiveTintColor: colors.primary,
-      tabBarInactiveTintColor: colors.text.disabled,
+      tabBarInactiveTintColor: colors.text.secondary,
       tabBarStyle: {
-        backgroundColor: colors.background,
+        backgroundColor: colors.background.primary,
         borderTopWidth: 0,
         elevation: 0,
         shadowOpacity: 0,
-        borderTopColor: colors.border,
+        borderTopColor: colors.border.light,
         height: 60,
         paddingBottom: 8,
         paddingTop: 8,
@@ -47,6 +49,7 @@ function MainTabs() {
         ...typography.body2,
         marginTop: 4,
       },
+      headerShown: false,
     },
     children: (
       <>
@@ -100,9 +103,9 @@ export function AppNavigator() {
   const stackNavigatorProps = {
     screenOptions: {
       headerShown: false,
-      contentStyle: { backgroundColor: colors.background },
+      contentStyle: { backgroundColor: colors.background.primary },
       headerStyle: {
-        backgroundColor: colors.background,
+        backgroundColor: colors.background.primary,
         ...Platform.select({
           android: {
             elevation: 0,
@@ -112,6 +115,11 @@ export function AppNavigator() {
           },
         }),
       },
+      headerTitleStyle: {
+        ...typography.h2,
+        color: colors.text.primary,
+      },
+      headerBackTitle: 'Back',
     },
     children: (
       <>
@@ -150,15 +158,30 @@ export function AppNavigator() {
               options={{
                 headerShown: true,
                 title: 'Your Story',
-                headerBackTitle: 'Back',
               }}
             />
             <Stack.Screen 
-              name="Test" 
-              component={TestScreen}
+              name="CustomizeStory" 
+              component={CustomizeStoryScreenWithErrorBoundary}
+              options={{
+                headerShown: false, // We handle our own header in the component
+                title: 'Customize Story',
+              }}
+            />
+            <Stack.Screen 
+              name="StoryCreation" 
+              component={StoryCreationScreenWithErrorBoundary}
+              options={{
+                headerShown: false, // We handle our own header in the component
+                title: 'Create Story',
+              }}
+            />
+            <Stack.Screen 
+              name="Subscription" 
+              component={SubscriptionScreen}
               options={{
                 headerShown: true,
-                title: 'Feature Testing'
+                title: 'Upgrade to Pro'
               }}
             />
             <Stack.Screen 
@@ -170,29 +193,19 @@ export function AppNavigator() {
               }}
             />
             <Stack.Screen 
-              name="CustomizeStory" 
-              component={CustomizeStoryScreenWithErrorBoundary}
-              options={{
-                headerShown: true,
-                title: 'Customize Story',
-                headerBackTitle: 'Back',
-              }}
-            />
-            <Stack.Screen 
-              name="StoryCreation" 
-              component={StoryCreationScreenWithErrorBoundary}
-              options={{
-                headerShown: true,
-                title: 'Create Story',
-                headerBackTitle: 'Back',
-              }}
-            />
-            <Stack.Screen 
               name="EditProfile" 
               component={EditProfileScreen}
               options={{
                 headerShown: true,
                 title: 'Edit Profile'
+              }}
+            />
+            <Stack.Screen 
+              name="Test" 
+              component={TestScreen}
+              options={{
+                headerShown: true,
+                title: 'Feature Testing'
               }}
             />
             {user?.isAdmin && (

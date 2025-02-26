@@ -1,148 +1,211 @@
 import React from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
-import { colors, typography, spacing, borderRadius, shadows } from '../../themes/theme';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, Dimensions } from 'react-native';
+import { typography, spacing, borderRadius, shadows } from '../../themes/theme';
+import { getColor } from '../../themes/themeHelpers';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
-import type { NavigationProps } from '../../types/navigation';
+import type { RootNavigationProp } from '../../types/navigation';
 import { useAuth } from '../../hooks/useAuth';
-import { Button } from '../shared/Button';
+// Import from node_modules directly
+import LinearGradient from '@react-native-community/linear-gradient';
+import { AnimatedStar } from './AnimatedStar';
 
-export const HeroSection = () => {
-  const navigation = useNavigation<NavigationProps>();
+interface HeroSectionProps {
+  onStartDrawing?: (uri?: string) => void;
+}
+
+export const HeroSection: React.FC<HeroSectionProps> = ({ onStartDrawing }) => {
+  const navigation = useNavigation<RootNavigationProp>();
   const { isAuthenticated } = useAuth();
   const [animation] = React.useState(new Animated.Value(0));
+  const { width, height } = Dimensions.get('window');
+
+  const starPositions = React.useMemo(() => [
+    { top: height * 0.1, left: width * 0.15, size: 16, delay: 300 },
+    { top: height * 0.25, left: width * 0.8, size: 14, delay: 500 },
+    { top: height * 0.7, left: width * 0.2, size: 12, delay: 700 },
+    { top: height * 0.5, left: width * 0.9, size: 18, delay: 100 },
+    { top: height * 0.6, left: width * 0.5, size: 10, delay: 900 },
+  ], [width, height]);
 
   React.useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(animation, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animation, {
-          toValue: 0,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // Entrance animation
+    Animated.spring(animation, {
+      toValue: 1,
+      tension: 50,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
+  const handleStartDrawing = () => {
+    if (isAuthenticated) {
+      if (onStartDrawing) {
+        onStartDrawing();
+      }
+      navigation.navigate('Drawing', { id: 'new' });
+    } else {
+      navigation.navigate('Auth', {
+        screen: 'SignIn',
+      });
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#6366F1', '#8B5CF6']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      {/* Animated floating stars */}
+      {starPositions.map((star, index) => (
+        <AnimatedStar
+          key={`star-${index}`}
+          position={{ top: star.top, left: star.left }}
+          size={star.size}
+          delay={star.delay}
+          parentAnimation={animation}
+        />
+      ))}
+
       <View style={styles.heroContent}>
-        <View style={styles.textContent}>
+        <Animated.View
+          style={[
+            styles.textContent,
+            {
+              opacity: animation,
+              transform: [
+                {
+                  translateY: animation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
           <Text style={styles.title}>Welcome to StoryDoodle!</Text>
           <Text style={styles.subtitle}>
             Turn your drawings into magical stories with AI
           </Text>
-        </View>
+        </Animated.View>
 
+        {/* Art tool icons */}
         <View style={styles.illustrationContainer}>
-          {/* Kid Character */}
-          <View style={styles.characterContainer}>
-            <MaterialCommunityIcons 
-              name="emoticon-excited-outline" 
-              size={64} 
-              color={colors.primary} 
-              style={styles.character}
-            />
-            <MaterialCommunityIcons 
-              name="pencil" 
-              size={32} 
-              color={colors.secondary} 
-              style={styles.pencil}
-            />
-          </View>
-
-          {/* Drawing Elements */}
-          <View style={styles.drawingElements}>
-            <MaterialCommunityIcons 
-              name="palette" 
-              size={32} 
-              color={colors.accent} 
-              style={styles.palette}
-            />
-            <MaterialCommunityIcons 
-              name="brush" 
-              size={32} 
-              color={colors.secondary} 
-              style={styles.brush}
-            />
-          </View>
-
-          {/* Floating Elements */}
           <Animated.View
             style={[
-              styles.floatingElements,
+              styles.iconBubble,
+              styles.iconLeft,
               {
-                transform: [{
-                  translateY: animation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, -15],
-                  }),
-                }],
-                opacity: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.6, 1],
-                }),
+                opacity: animation,
+                transform: [
+                  {
+                    translateY: animation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-50, -10],
+                    }),
+                  },
+                ],
               },
             ]}
           >
-            <MaterialCommunityIcons name="star" size={24} color={colors.accent} style={styles.star1} />
-            <MaterialCommunityIcons name="book-open-page-variant" size={32} color={colors.secondary} style={styles.book} />
-            <MaterialCommunityIcons name="star" size={20} color={colors.primary} style={styles.star2} />
+            <MaterialCommunityIcons
+              name="palette"
+              size={32}
+              color="#6366F1"
+            />
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.iconBubble,
+              styles.iconMiddle,
+              {
+                opacity: animation,
+                transform: [
+                  {
+                    translateY: animation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 30], // Lower position
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="pencil"
+              size={36} // Slightly larger
+              color="#6366F1"
+            />
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.iconBubble,
+              styles.iconRight,
+              {
+                opacity: animation,
+                transform: [
+                  {
+                    translateY: animation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-30, -5],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="book-open-variant"
+              size={32}
+              color="#6366F1"
+            />
           </Animated.View>
         </View>
 
-        <View style={styles.buttons}>
-          {isAuthenticated ? (
-            <Button
-              title="Start Drawing"
-              variant="primary"
-              size="large"
-              icon="pencil"
-              onPress={() => navigation.navigate('Drawing', { id: 'new' })}
-              style={styles.button}
+        {/* Start Drawing Button */}
+        <Animated.View
+          style={[
+            styles.buttonContainer,
+            {
+              opacity: animation,
+              transform: [
+                {
+                  translateY: animation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [30, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.startDrawingButton}
+            onPress={handleStartDrawing}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons
+              name="pencil"
+              size={24}
+              color="#6366F1"
+              style={styles.buttonIcon}
             />
-          ) : (
-            <>
-              <Button
-                title="Start Drawing"
-                variant="primary"
-                size="large"
-                icon="pencil"
-                onPress={() => navigation.navigate('Auth', { screen: 'SignUp', params: { plan: undefined } })}
-                style={styles.button}
-              />
-              <Button
-                title="Sign In"
-                variant="outline"
-                size="large"
-                icon="login"
-                onPress={() => navigation.navigate('Auth', { screen: 'SignIn' })}
-                style={styles.button}
-              />
-            </>
-          )}
-        </View>
+            <Text style={styles.buttonText}>Start Drawing</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
-
-      {/* Background Decorations */}
-      <View style={styles.decorations}>
-        <View style={[styles.decoration, styles.decoration1]} />
-        <View style={[styles.decoration, styles.decoration2]} />
-        <View style={[styles.decoration, styles.decoration3]} />
-      </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    backgroundColor: colors.background,
     borderBottomLeftRadius: borderRadius.xl,
     borderBottomRightRadius: borderRadius.xl,
     overflow: 'hidden',
@@ -158,110 +221,76 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h1,
-    color: colors.text.primary,
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: spacing.sm,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+    fontSize: 28,
+    fontWeight: 'bold',
   },
   subtitle: {
     ...typography.body1,
-    color: colors.text.secondary,
+    color: '#FFFFFF',
     textAlign: 'center',
+    opacity: 0.9,
   },
   illustrationContainer: {
-    height: 250,
+    height: 180,
     width: '100%',
     position: 'relative',
     marginBottom: spacing.xl,
   },
-  characterContainer: {
+  iconBubble: {
     position: 'absolute',
-    bottom: 20,
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.round,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.md,
+  },
+  iconLeft: {
+    top: '30%',
+    left: '15%',
+  },
+  iconMiddle: {
+    top: '50%',
     left: '50%',
-    transform: [{ translateX: -32 }],
+    transform: [{ translateX: -40 }, { translateY: -40 }],
+    width: 80,
+    height: 80,
+    zIndex: 2,
+  },
+  iconRight: {
+    top: '25%',
+    right: '15%',
+  },
+  buttonContainer: {
+    width: '100%',
     alignItems: 'center',
   },
-  character: {
-    position: 'relative',
+  startDrawingButton: {
+    minWidth: 200,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.lg,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.md,
   },
-  pencil: {
-    position: 'absolute',
-    top: -20,
-    right: -20,
-    transform: [{ rotate: '45deg' }],
+  buttonIcon: {
+    marginRight: spacing.sm,
   },
-  drawingElements: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-  palette: {
-    position: 'absolute',
-    top: '30%',
-    left: '20%',
-  },
-  brush: {
-    position: 'absolute',
-    top: '40%',
-    right: '25%',
-    transform: [{ rotate: '-30deg' }],
-  },
-  floatingElements: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-  star1: {
-    position: 'absolute',
-    top: '20%',
-    left: '30%',
-  },
-  book: {
-    position: 'absolute',
-    top: '50%',
-    right: '20%',
-  },
-  star2: {
-    position: 'absolute',
-    top: '70%',
-    left: '25%',
-  },
-  buttons: {
-    width: '100%',
-    gap: spacing.md,
-  },
-  button: {
-    width: '100%',
-  },
-  decorations: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: -1,
-  },
-  decoration: {
-    position: 'absolute',
-    backgroundColor: colors.primary,
-    opacity: 0.1,
-    borderRadius: borderRadius.round,
-  },
-  decoration1: {
-    width: 200,
-    height: 200,
-    top: -100,
-    right: -50,
-    transform: [{ rotate: '30deg' }],
-  },
-  decoration2: {
-    width: 150,
-    height: 150,
-    bottom: -50,
-    left: -30,
-    transform: [{ rotate: '-15deg' }],
-  },
-  decoration3: {
-    width: 100,
-    height: 100,
-    top: '50%',
-    right: -20,
-    transform: [{ rotate: '45deg' }],
+  buttonText: {
+    ...typography.button,
+    color: '#6366F1',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

@@ -15,18 +15,37 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import React from 'react';
 
+// Story Settings Type
+export interface StorySettings {
+  ageGroup: string;
+  storyLength: 'short' | 'medium' | 'long';
+  theme: string;
+  author?: string;
+  gender?: 'boy' | 'girl' | null;
+  coverImage?: string;
+  includeVoiceNarration?: boolean;
+  additionalIdeas?: string;
+}
+
 // Root Stack Types
 export type RootStackParamList = {
-  MainTabs: NavigatorScreenParams<TabParamList> | { screen: keyof TabParamList };
+  MainTabs: NavigatorScreenParams<TabParamList> | { 
+    screen: keyof TabParamList; 
+    params?: TabParamList[keyof TabParamList];
+  };
   Drawing: { id: string; imageUri?: string; mode?: 'new' | 'edit' | 'view' };
   Story: { id: string };
   Camera: undefined;
   Gallery: undefined;
   CustomizeStory: {
     imageUri?: string;
+    storySettings?: StorySettings;
     drawingId?: string;
   };
-  StoryCreation: undefined;
+  StoryCreation: {
+    imageUri: string;
+    storySettings: StorySettings;
+  };
   Subscription: undefined;
   Settings: undefined;
   WordExplorer: undefined;
@@ -34,6 +53,7 @@ export type RootStackParamList = {
   Admin: NavigatorScreenParams<AdminStackParamList>;
   UserProfile: undefined;
   EditProfile: undefined;
+  Test: undefined;
 };
 
 // Auth Stack Types
@@ -54,14 +74,8 @@ export type AdminStackParamList = {
 // Tab Navigator Types
 export type TabParamList = {
   Home: {
-    storySettings?: {
-      coverImage: string | null;
-      ageGroup: string;
-      author: string;
-      gender: 'boy' | 'girl' | null;
-      storyLength: 'short' | 'medium' | 'long';
-      theme: string;
-    };
+    imageUri?: string;
+    storySettings?: StorySettings;
   } | undefined;
   Gallery: undefined;
   WordExplorer: undefined;
@@ -92,7 +106,9 @@ export type GalleryTabNavigationProp = NativeStackNavigationProp<GalleryTabParam
 // Route Props Types
 export type DrawingScreenRouteProp = RouteProp<RootStackParamList, 'Drawing'>;
 export type CustomizeStoryScreenRouteProp = RouteProp<RootStackParamList, 'CustomizeStory'>;
+export type StoryCreationScreenRouteProp = RouteProp<RootStackParamList, 'StoryCreation'>;
 export type StoryScreenRouteProp = RouteProp<RootStackParamList, 'Story'>;
+export type HomeScreenRouteProp = RouteProp<TabParamList, 'Home'>;
 
 // Screen Component Types
 export type ScreenComponent<T extends keyof RootStackParamList> = React.FC<RootStackScreenProps<T>>;
